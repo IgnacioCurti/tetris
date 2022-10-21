@@ -1,6 +1,7 @@
 const width = 40
 
-const shapes = [ // O, L, J, T, S, Z, I
+const shapes = [ 
+  // O, L, J, T, S, Z, I
   [
     [1, 1],
     [1, 1]
@@ -36,52 +37,120 @@ const shapes = [ // O, L, J, T, S, Z, I
   ]
 ]
 
-const colours = ['#F3F3F3','#EB3535', '#65B6E3', '#5B63F5', '#E365D4', '#F5F05B', '#F5AC5B', '#35EB44']
 const button = document.getElementById("start");
-button.addEventListener("click", drawFigures);
-const canvas = document.getElementById("game");
+button.addEventListener("click", play);
 
-function drawFigures() {
-  if (canvas.getContext) {
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = colours[0]
-    ctx.fillRect(0, 0, 360, 720)
+// class Piece {
+//   constructor() {
+
+//   }
+// }
+
+class Board { 
+  constructor(ctx, shapes) {
+    this.ctx = ctx;   
+    this.area = this.initializeArea()
+    this.colours = ['#F3F3F3','#EB3535', '#65B6E3', '#5B63F5', '#E365D4', '#F5F05B', '#F5AC5B', '#35EB44']
+    this.playing = true
+  }
+
+  initializeArea(){
+    let area = []
+    for (let i = 0; i < 18; i++){
+      area.push(Array(9).fill(0))
+    }
+    return area
+  }
+
+  draw() {
     let posY = 0
-    for (let shape of shapes){
-      for (let row of shape){
+    for (let i = 0; i < 10; i++){
+      for (let row of this.area){
         let posX = 0
         for (let block of row){
-          if (block){
-            ctx.fillStyle = colours[block]
-            ctx.fillRect(posX, posY, width, width);
-          }
+          this.ctx.fillStyle = this.colours[block]
+          this.ctx.fillRect(posX, posY, width, width)
           posX += width
         }
         posY += width
       }
-      // posY += 40
     }
-    drawBoard()
+  }
+
+  gameOver(){
+    return true
+  }
+
+  piecePlaced(){
+    return false
+  }
+
+  newPiece() {
+    let piece = getShape()
+    let posY = 0
+    for (let row of piece){
+      let posX = 6 - piece[0].length // para que la pieza aparezca arriba y en el medio
+      for (let block of row){
+        this.area[posY][posX] = block
+        posX++
+      }
+      posY++
+    }
+  }
+
+  movePiece(dir){
+    console.log(dir)
+  }
+
+  rotate(){
+    console.log('rotate')
+  }
+
+  drop(){
+    console.log('drop')
   }
 }
 
+function getShape(){
+    return shapes[Math.floor(Math.random() * 7)]
+}
 
-function drawBoard(){
-  if (canvas.getContext) {
-    const ctx = canvas.getContext("2d");
-    for(let posX = width; posX < 360; posX += width){
-      ctx.beginPath();
-      ctx.strokeStyle = '#000000';
-      ctx.moveTo(posX, 0);
-      ctx.lineTo(posX, 720);
-      ctx.stroke();
+function handleKeydown(){
+  
+}
+
+function play(){
+  const canvas = document.getElementById("game")
+  const board = new Board(canvas.getContext("2d"))
+  const stop = document.getElementById('stop')
+  stop.addEventListener('click', stopGame)
+  document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+      case 'ArrowDown':
+        board.drop()
+        break;
+      case 'ArrowLeft':
+        board.movePiece('left')
+        break;
+      case 'ArrowRight':
+        board.movePiece('right')
+        break;
+      case 'ArrowUp':
+        board.rotate()
+        break;
+      default:
+        break;
     }
-    for(let posY = width; posY < 720; posY += width){
-      ctx.beginPath();
-      ctx.strokeStyle = '#000000';
-      ctx.moveTo(0, posY);
-      ctx.lineTo(360, posY);
-      ctx.stroke();
-    }
+  })
+  if (board.piecePlaced()) {
+    board.newPiece()
   }
+  board.draw()
+  if (board.gameOver()){
+    board.playing = false
+  }
+}
+
+function stopGame(){
+  document.getElementById('alert').style.visibility = 'visible'
 }
